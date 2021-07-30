@@ -1,0 +1,9 @@
+{
+  "watch": ["src/", "test/"],
+  "ext": "ts,js,tsx,jsx,json",
+  "ignore": [".git", "node_modules/"],
+  "exec": "node --loader ts-node/esm test/index.ts",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}
