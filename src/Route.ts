@@ -12,12 +12,16 @@ export enum IRouteOrderPosition {
   LAST = 'last',
 }
 
-export enum IRouteMethod {
+export enum RouteMethod {
   GET = 'get',
   PUT = 'put',
   POST = 'post',
   PATCH = 'patch',
   DELETE = 'delete',
+  HEAD = 'head',
+  CONNECT = 'connect',
+  OPTIONS = 'options',
+  TRACE = 'trace'
 }
 
 interface IRouteInfo {
@@ -26,7 +30,7 @@ interface IRouteInfo {
   collections?: string[],
   description?: string,
   method: string;
-  path: string | IRouteMethod;
+  path: string | RouteMethod;
   middleware?: ((...args: any[]) => void)[];
   priority?: IRouteOrderPosition;
   requreAuth?: boolean;

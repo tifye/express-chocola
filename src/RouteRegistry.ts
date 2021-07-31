@@ -18,7 +18,7 @@ export interface IRegisterRoutesInOptions {
 
 export default class RouteRegistry {
   public readonly router: Router;
-  private routes: Map<string, Route[]>;
+  private routes: Map<string, Route>;
   private collections: Map<string, Collection>;
 
   constructor() {
@@ -61,11 +61,8 @@ export default class RouteRegistry {
 
   public registerRoutesIn(options: IRegisterRoutesInOptions | string) {
     if (typeof options === 'object' && options.recursive !== undefined) options.recursive = true;
-    let routes = require('require-all')(options);
-    console.log(routes);
-    routes = flatten(routes);
-    console.log(routes);
-    return this.registerRoutes(routes);
+    const routes = require('require-all')(options);
+    return this.registerRoutes(flatten(routes));
   }
 
   public registerCollection(collectionOptions: ICollectionOptions) {
@@ -85,9 +82,11 @@ export default class RouteRegistry {
   }
 
   private organizeRoute(route: Route) {
-    // Organize into group
-    if (!this.routes.has(route.info.group)) this.routes.set(route.info.group, []);
-    this.routes.get(route.info.group)?.push(route);
+    // Add Route
+    if (this.routes.has(route.info.name)) {
+      console.log(`📒 {Skipping over} Attempting to register Route with duplicate name: ${route.info.name}\nWith paths:\n\t${route.info.path}\n\t${this.routes.get(route.info.name)?.path}`);
+    }
+    this.routes.set(route.info.name, route);
 
     // Organize into collection
     if (route.info.collections !== undefined && !Array.isArray(route.info.collections)) throw TypeError('Collections must be an Array');
@@ -96,7 +95,7 @@ export default class RouteRegistry {
         this.collections.set(collection, new Collection([collection]));
         console.log(`📒 Collection: ${collection} was auto generated from route ${route.info.name}`);
       }
-      this.collections.get(collection)?.addRoute(route);
+      this.collections.get(collection)?.addRoute(route.info.name);
     });
   }
 

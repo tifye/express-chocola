@@ -1,11 +1,11 @@
-import { IRouteArgs, Route } from '../../../src/Route';
+import { IRouteArgs, Route, RouteMethod } from '../../../src/Route';
 
 export default class MeepRoute extends Route {
   constructor() {
     super({
       name: 'meep',
       group: 'meep',
-      method: 'get',
+      method: RouteMethod.GET,
       path: 'meep',
       collections: ['meep'],
     });

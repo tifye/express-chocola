@@ -3,7 +3,7 @@ import { Route } from './Route';
 export type ICollectionOptions = [string, ((...args: any[]) => void)[]?];
 
 export default class Collection {
-  public routes: Route[];
+  public routes: string[];
   public readonly middleware: ((...args: any[]) => void)[];
   public readonly name: string;
 
@@ -13,7 +13,7 @@ export default class Collection {
     this.name = name;
   }
 
-  public addRoute(route: Route) {
-    this.routes.push(route);
+  public addRoute(routeName: string) {
+    this.routes.push(routeName);
   }
 }
