@@ -1,8 +1,9 @@
 import { IRouteArgs, Route, RouteMethod } from '../../../src/Route';
+import RouteRegistry from '../../../src/RouteRegistry';
 
 export default class MeepRoute extends Route {
-  constructor() {
-    super({
+  constructor(registry: RouteRegistry) {
+    super(registry, {
       name: 'meep',
       group: 'meep',
       method: RouteMethod.GET,

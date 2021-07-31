@@ -10,6 +10,7 @@ const meepGroupMiddleware = genericMiddleware('Meep Group Middlewar');
 const minoTagMiddleware = genericMiddleware('Mino RouteTag Middlewar');
 const minoGroupMiddleware = genericMiddleware('Mino Group Middlewar');
 const authMiddleware = genericMiddleware('Auth Middleware');
+const afterRouteTagMiddleware = genericMiddleware('After Route Tag Middleware');
 
 const registry = new RouteRegistry()
   .registerTags([
@@ -25,7 +26,8 @@ const registry = new RouteRegistry()
   .registerRoutesIn({
     filter: /^([^.].*)\.(js|ts)$/,
     dirname: path.join(__dirname, 'routes'),
-  });
+  })
+  .registerMiddlewareOnTag('mino', afterRouteTagMiddleware);
 
 const app = express();
 

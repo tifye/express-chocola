@@ -32,17 +32,17 @@ export default class RouteRegistry {
   }
 
   /* Routes */
-  private registerRoute(route: Route) {
-    this.organizeRoute(route);
+  public registerRoute(route: Route, isDuplicate: boolean = false) {
+    if (!isDuplicate) this.organizeRoute(route);
     const routeMiddleware = this.getRouteMiddleware(route);
 
     // Register Route on Router
-    (this.router as any)[route.info.method](route.path, ...routeMiddleware,
+    (this.router as any)[route.method](route.path, ...routeMiddleware,
       async (request: Request, response: Response, next: NextFunction) => {
         await route.wrappedRun({ request, response, next });
       });
 
-    console.log(`✔️ ${route.info?.method} => ${route.info?.name} ${route.path}`);
+    console.log(`✔️ ${route?.method} => ${route?.name} ${route.path}`);
   }
 
   private registerRoutes(routes: any[]) {
@@ -51,9 +51,9 @@ export default class RouteRegistry {
     const lastPriority: Route[] = [];
     routes.forEach((_route) => {
       // TODO: Validate attempting Route
-      const route = new _route() as Route;
+      const route = new _route(this) as Route;
       //
-      if (route.info?.priority === IRouteOrderPosition.LAST) lastPriority.push(route);
+      if (route?.priority === IRouteOrderPosition.LAST) lastPriority.push(route);
       else this.registerRoute(route);
     });
     // Register the rest
@@ -68,6 +68,25 @@ export default class RouteRegistry {
     if (typeof options === 'object' && options.recursive !== undefined) options.recursive = true;
     const routes = require('require-all')(options);
     return this.registerRoutes(flatten(routes));
+  }
+
+  /* FIXME: need to remove route from router first */
+  public reregisterRoute(route: Route, oldRoute: Route) {
+    if (route.constructor !== oldRoute.constructor) {
+      console.error(`📕 {Skipping over} Attempting to reregister Route as different type: - new: ${route.name} - old: ${oldRoute.name}`);
+      return this;
+    }
+
+    if (route.name !== oldRoute.name || route.group !== oldRoute.group) {
+      console.error(`📕 {Skipping over} Attempting to reregister Route with different name or group: - new: ${route.name} - old: ${oldRoute.name}`);
+      return this;
+    }
+
+    return this.registerRoute(route, true);
+  }
+
+  public resolveRoute(routeName: string) {
+    return this.routes.get(routeName);
   }
 
   /* Tags */
@@ -117,39 +136,39 @@ export default class RouteRegistry {
 
   private organizeRoute(route: Route) {
     // Add Route
-    if (this.routes.has(route.info.name)) {
-      console.log(`📒 {Skipping over} Attempting to register Route with duplicate name: ${route.info.name}\nWith paths:\n\t${route.info.path}\n\t${this.routes.get(route.info.name)?.path}`);
+    if (this.routes.has(route.name)) {
+      console.log(`📒 {Skipping over} Attempting to register Route with duplicate name: ${route.name}\nWith paths:\n\t${route.subPath}\n\t${this.routes.get(route.name)?.path}`);
     }
-    this.routes.set(route.info.name, route);
+    this.routes.set(route.name, route);
 
     // Organize into tag
-    if (route.info.tags !== undefined && !Array.isArray(route.info.tags)) throw TypeError('Tags must be an Array');
-    route.info.tags?.forEach((tag) => {
+    if (route.tags !== undefined && !Array.isArray(route.tags)) throw TypeError('Tags must be an Array');
+    route.tags?.forEach((tag) => {
       if (!this.tags.has(tag)) {
         this.tags.set(tag, new RouteTag([tag]));
-        console.log(`📒 RouteTag: ${tag} was auto generated from route ${route.info.name}`);
+        console.log(`📒 RouteTag: ${tag} was auto generated from route ${route.name}`);
       }
-      this.tags.get(tag)?.addRoute(route.info.name);
+      this.tags.get(tag)?.addRoute(route.name);
     });
 
     // Organize into Group
-    if (route.info.group) {
-      if (!this.groups.has(route.info.group)) {
-        console.error(`📕 {Skipping over} Attempting to add Route to unregistered Group: ${route.info.group}`);
+    if (route.group) {
+      if (!this.groups.has(route.group)) {
+        console.error(`📕 {Skipping over} Attempting to add Route to unregistered Group: ${route.group}`);
         return;
       }
-      this.groups.get(route.info.group)?.addRoute(route.info.name);
+      this.groups.get(route.group)?.addRoute(route.name);
     } else if (this.groups.has(this.defaultGroupName)) {
-      this.groups.get(this.defaultGroupName)?.addRoute(route.info.name);
+      this.groups.get(this.defaultGroupName)?.addRoute(route.name);
     }
   }
 
   private getRouteMiddleware(route: Route) {
     const routeMiddleware = new Set<((...args: any[]) => void)>();
     // Add RouteGroup middleware
-    this.groups.get(route.info.group || this.defaultGroupName)?.middleware.forEach((middleware) => routeMiddleware.add(middleware));
+    this.groups.get(route.group || this.defaultGroupName)?.middleware.forEach((middleware) => routeMiddleware.add(middleware));
     // Add RouteTag middleware
-    route.info.tags?.forEach((collectionName) => {
+    route.tags?.forEach((collectionName) => {
       const tag = this.tags.get(collectionName);
       if (tag === undefined) return;
       tag.middleware.forEach((middleware) => {
@@ -157,7 +176,7 @@ export default class RouteRegistry {
       });
     });
     // Add Route middleware
-    route.info.middleware?.forEach((middleware) => {
+    route.middleware?.forEach((middleware) => {
       routeMiddleware.add(middleware);
     });
     return [...routeMiddleware];

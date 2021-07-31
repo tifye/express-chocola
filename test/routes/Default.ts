@@ -1,8 +1,9 @@
 import { IRouteArgs, Route } from '../../src/Route';
+import RouteRegistry from '../../src/RouteRegistry';
 
 export default class Default extends Route {
-  constructor() {
-    super({
+  constructor(registry: RouteRegistry) {
+    super(registry, {
       name: 'default',
       method: 'get',
       path: '',

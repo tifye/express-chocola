@@ -1,19 +1,14 @@
 import { IRouteArgs, Route } from '../../../src/Route';
+import RouteRegistry from '../../../src/RouteRegistry';
 
 export default class MinoRoute extends Route {
-  constructor() {
-    super({
+  constructor(registry: RouteRegistry) {
+    super(registry, {
       name: 'mino',
       group: 'mino',
       method: 'get',
       path: 'mino',
       tags: ['mino', 'non_existant', 'authProtected'],
-      middleware: [
-        (req, res, next) => {
-          console.log('mino middleware');
-          next();
-        },
-      ],
     });
   }
 

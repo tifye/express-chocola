@@ -7,6 +7,7 @@ import {
   NextFunction,
   Router,
 } from 'express';
+import RouteRegistry from './RouteRegistry';
 
 export enum IRouteOrderPosition {
   LAST = 'last',
@@ -44,15 +45,33 @@ export interface IRouteArgs {
 }
 
 export abstract class Route {
+  /**
+   * @typedef {Object} RouteInfo
+   * @property {string} name - The name of the route
+   * @property {string} group - The name of the group that this command belongs to. Groups always prepend the Routes path.
+   * If no Group is specificed and the user has registered the default Group then the Route will be part of the default Group.
+   *
+   */
   private activeResponse: Response | undefined | null;
 
-  constructor(public readonly info: IRouteInfo) {}
+  public name: string;
+  public group?: string;
+  public tags?: string[];
+  public description?: string;
+  public method: string;
+  public subPath: string | RouteMethod;
+  public middleware?: ((...args: any[]) => void)[];
+  public priority?: IRouteOrderPosition;
 
-  public register(router: Router, extraMiddleware: ((...args: any[]) => void)[] = []) {
-    if (this.info.middleware === undefined) this.info.middleware = [];
-    (router as any)[this.info.method](`/${this.info.group}/${this.info.path}`, ...extraMiddleware, ...this.info.middleware, async (request: Request, response: Response, next: NextFunction) => {
-      await this.wrappedRun({ request, response, next });
-    });
+  constructor(private readonly registry: RouteRegistry, info: IRouteInfo) {
+    this.name = info.name;
+    this.group = info.group;
+    this.tags = info.tags;
+    this.description = info.description;
+    this.method = info.method;
+    this.subPath = info.path;
+    this.middleware = info.middleware;
+    this.priority = info.priority;
   }
 
   public async wrappedRun(args: IRouteArgs) {
@@ -60,7 +79,7 @@ export abstract class Route {
       this.activeResponse = args.response;
       await this.run(args);
     } catch (error) {
-      console.error(this.info, error);
+      console.error(this, error);
       args.next(error);
     }
   }
@@ -70,9 +89,14 @@ export abstract class Route {
     if (end) this.activeResponse?.end();
   }
 
+  public reload() {
+    // TODO: delete require cache of this command
+    this.registry.reregisterRoute(this, this);
+  }
+
   get path() {
-    const group = (this.info.group === undefined) ? '' : `/${this.info.group}`;
-    const path = (this.info.path[0] === '/') ? this.info.path.substr(1) : this.info.path;
+    const group = (this.group === undefined) ? '' : `/${this.group}`;
+    const path = (this.subPath[0] === '/') ? this.subPath.substr(1) : this.subPath;
     return `${group}/${path}`;
   }
 
