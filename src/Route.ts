@@ -24,9 +24,9 @@ export enum RouteMethod {
   TRACE = 'trace'
 }
 
-interface IRouteInfo {
+export interface IRouteInfo {
   name: string,
-  group: string,
+  group?: string,
   collections?: string[],
   description?: string,
   method: string;
@@ -71,7 +71,9 @@ export abstract class Route {
   }
 
   get path() {
-    return `/${this.info?.group}/${this.info?.path}`;
+    const group = (this.info.group === undefined) ? '' : `/${this.info.group}`;
+    const path = (this.info.path[0] === '/') ? this.info.path.substr(1) : this.info.path;
+    return `${group}/${path}`;
   }
 
   abstract run(args: IRouteArgs): Promise<Response | void>;

@@ -15,5 +15,10 @@ export default class Collection {
 
   public addRoute(routeName: string) {
     this.routes.push(routeName);
+    return this;
+  }
+
+  public addRoutes(routes: string[]) {
+    return routes.forEach((routeName) => this.addRoute(routeName));
   }
 }
