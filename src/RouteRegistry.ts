@@ -7,6 +7,7 @@ import {
   NextFunction,
 } from 'express';
 import { IRouteOrderPosition, Route } from './Route';
+import { flatten } from './helperFunctions';
 import Collection, { ICollectionOptions } from './Collection';
 
 export interface IRegisterRoutesInOptions {
@@ -14,20 +15,6 @@ export interface IRegisterRoutesInOptions {
   dirname?: string;
   recursive?: boolean;
 }
-
-const flatten = (object: any): any[] => {
-  const array: any[] = [];
-  // eslint-disable-next-line no-underscore-dangle
-  const _flatten = (_object: any) => {
-    Object.keys(_object).forEach((key) => {
-      if (typeof _object[key] === 'object') _flatten(_object[key]);
-      else array.push(_object[key]);
-    });
-  };
-
-  _flatten(object);
-  return array;
-};
 
 export default class RouteRegistry {
   public readonly router: Router;
