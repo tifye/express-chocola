@@ -8,7 +8,7 @@ import {
 } from 'express';
 import { IRouteOrderPosition, Route } from './Route';
 import { flatten } from './helperFunctions';
-import Collection, { ICollectionOptions } from './Collection';
+import RouteTag, { ITagOptions } from './RouteTag';
 import RouteGroup, { IRouteGroupOptions } from './RouteGroup';
 
 export interface IRegisterRoutesInOptions {
@@ -20,14 +20,14 @@ export interface IRegisterRoutesInOptions {
 export default class RouteRegistry {
   public readonly router: Router;
   public readonly routes: Map<string, Route>;
-  public readonly collections: Map<string, Collection>;
+  public readonly tags: Map<string, RouteTag>;
   public readonly groups: Map<string, RouteGroup>;
   public readonly defaultGroupName = '';
 
   constructor() {
     this.router = Router();
     this.routes = new Map();
-    this.collections = new Map();
+    this.tags = new Map();
     this.groups = new Map();
   }
 
@@ -47,7 +47,7 @@ export default class RouteRegistry {
 
   private registerRoutes(routes: any[]) {
     if (!Array.isArray(routes)) throw new TypeError('Routes must be an Array type');
-    // TODO: Range of priority via collections
+    // TODO: Range of priority via tags
     const lastPriority: Route[] = [];
     routes.forEach((_route) => {
       // TODO: Validate attempting Route
@@ -70,18 +70,27 @@ export default class RouteRegistry {
     return this.registerRoutes(flatten(routes));
   }
 
-  /* Collections */
-  public registerCollection(collectionOptions: ICollectionOptions) {
-    if (!this.collections.has(collectionOptions[0])) {
-      this.collections.set(collectionOptions[0], new Collection(collectionOptions));
+  /* Tags */
+  public registerTag(collectionOptions: ITagOptions) {
+    if (!this.tags.has(collectionOptions[0])) {
+      this.tags.set(collectionOptions[0], new RouteTag(collectionOptions));
     }
     return this;
   }
 
-  public registerCollections(collectionsOptions: ICollectionOptions[]) {
+  public registerTags(collectionsOptions: ITagOptions[]) {
     collectionsOptions.forEach((collectionOptions) => {
-      this.registerCollection(collectionOptions);
+      this.registerTag(collectionOptions);
     });
+    return this;
+  }
+
+  public registerMiddlewareOnTag(tagName: string, middleware: ((...args: any[]) => void)) {
+    if (!this.tags.has(tagName)) {
+      console.error(`📕 {Skipping over} Attempting to add middleware to unregistered RouteTag: ${tagName}`);
+      return this;
+    }
+    this.tags.get(tagName)?.addMiddleware(middleware);
     return this;
   }
 
@@ -113,14 +122,14 @@ export default class RouteRegistry {
     }
     this.routes.set(route.info.name, route);
 
-    // Organize into collection
-    if (route.info.collections !== undefined && !Array.isArray(route.info.collections)) throw TypeError('Collections must be an Array');
-    route.info.collections?.forEach((collection) => {
-      if (!this.collections.has(collection)) {
-        this.collections.set(collection, new Collection([collection]));
-        console.log(`📒 Collection: ${collection} was auto generated from route ${route.info.name}`);
+    // Organize into tag
+    if (route.info.tags !== undefined && !Array.isArray(route.info.tags)) throw TypeError('Tags must be an Array');
+    route.info.tags?.forEach((tag) => {
+      if (!this.tags.has(tag)) {
+        this.tags.set(tag, new RouteTag([tag]));
+        console.log(`📒 RouteTag: ${tag} was auto generated from route ${route.info.name}`);
       }
-      this.collections.get(collection)?.addRoute(route.info.name);
+      this.tags.get(tag)?.addRoute(route.info.name);
     });
 
     // Organize into Group
@@ -139,11 +148,11 @@ export default class RouteRegistry {
     const routeMiddleware = new Set<((...args: any[]) => void)>();
     // Add RouteGroup middleware
     this.groups.get(route.info.group || this.defaultGroupName)?.middleware.forEach((middleware) => routeMiddleware.add(middleware));
-    // Add Collection middleware
-    route.info.collections?.forEach((collectionName) => {
-      const collection = this.collections.get(collectionName);
-      if (collection === undefined) return;
-      collection.middleware.forEach((middleware) => {
+    // Add RouteTag middleware
+    route.info.tags?.forEach((collectionName) => {
+      const tag = this.tags.get(collectionName);
+      if (tag === undefined) return;
+      tag.middleware.forEach((middleware) => {
         routeMiddleware.add(middleware);
       });
     });

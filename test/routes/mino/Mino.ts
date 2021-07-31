@@ -7,7 +7,7 @@ export default class MinoRoute extends Route {
       group: 'mino',
       method: 'get',
       path: 'mino',
-      collections: ['mino', 'non_existant', 'meep'],
+      tags: ['mino', 'non_existant', 'authProtected'],
       middleware: [
         (req, res, next) => {
           console.log('mino middleware');

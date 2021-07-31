@@ -7,7 +7,7 @@ export default class MeepRoute extends Route {
       group: 'meep',
       method: RouteMethod.GET,
       path: 'meep',
-      collections: ['meep'],
+      tags: ['meep'],
     });
   }
 

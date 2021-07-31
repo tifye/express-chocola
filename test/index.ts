@@ -5,19 +5,21 @@ import RouteRegistry from '../src/RouteRegistry';
 const genericMiddleware = (string) => (req, res, next) => { console.log(string); next(); };
 const someMiddleware = genericMiddleware('Some Middleware');
 const defaultGroupMiddleware = genericMiddleware('Default Group Middleware');
-const meepCollectionMiddleware = genericMiddleware('Meep Collection Middlewar');
+const meepTagMiddleware = genericMiddleware('Meep RouteTag Middlewar');
 const meepGroupMiddleware = genericMiddleware('Meep Group Middlewar');
-const minoCollectionMiddleware = genericMiddleware('Mino Collection Middlewar');
+const minoTagMiddleware = genericMiddleware('Mino RouteTag Middlewar');
 const minoGroupMiddleware = genericMiddleware('Mino Group Middlewar');
+const authMiddleware = genericMiddleware('Auth Middleware');
 
 const registry = new RouteRegistry()
-  .registerCollections([
-    ['mino', [minoCollectionMiddleware]],
-    ['meep', [meepCollectionMiddleware, someMiddleware]],
+  .registerTags([
+    ['mino'],
+    ['meep', [meepTagMiddleware, someMiddleware]],
+    ['authProtected', [authMiddleware, someMiddleware]],
   ])
   .registerGroups([
     ['mino', [minoGroupMiddleware]],
-    ['meep', [meepGroupMiddleware, someMiddleware]],
+    ['meep', [someMiddleware]],
   ])
   .registerDefaultGroup([defaultGroupMiddleware])
   .registerRoutesIn({

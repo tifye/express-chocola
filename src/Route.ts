@@ -27,7 +27,7 @@ export enum RouteMethod {
 export interface IRouteInfo {
   name: string,
   group?: string,
-  collections?: string[],
+  tags?: string[],
   description?: string,
   method: string;
   path: string | RouteMethod;
