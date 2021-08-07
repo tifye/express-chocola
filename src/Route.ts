@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-empty-function */
 /* eslint-disable no-useless-constructor */
@@ -56,6 +57,14 @@ export interface IRouteInputs {
   params?: RouteInput[];
 }
 
+export interface IRouteArgs {
+  request: Request;
+  response: Response;
+  next: NextFunction;
+  inputs?: any;
+  [id: string]: any;
+}
+
 export interface IRouteInfo {
   name: string;
   group?: string;
@@ -67,13 +76,7 @@ export interface IRouteInfo {
   priority?: IRouteOrderPosition;
   requreAuth?: boolean;
   inputs?: IRouteInputs;
-}
-
-export interface IRouteArgs {
-  request: Request;
-  response: Response;
-  next: NextFunction;
-  [id: string]: any;
+  handleInputError?(errors: InputError[], args: IRouteArgs): void;
 }
 
 export abstract class Route {
@@ -95,6 +98,7 @@ export abstract class Route {
   public middleware?: ((...args: any[]) => void)[];
   public priority?: IRouteOrderPosition;
   public inputs: IRouteInput[];
+  private handleInputError?(errors: InputError[], args: IRouteArgs): void;
 
   constructor(private readonly registry: RouteRegistry, info: IRouteInfo) {
     this.name = info.name;
@@ -107,6 +111,8 @@ export abstract class Route {
     this.priority = info.priority;
     //
     this.inputs = unifyRouteInputDefinition(info.inputs);
+    //
+    this.handleInputError = info.handleInputError;
   }
 
   public async wrappedRun(args: IRouteArgs) {
@@ -115,7 +121,18 @@ export abstract class Route {
       const inputResults = this.validateRequestInputs(args.request);
       if (inputResults[0].length > 0) {
         console.error(inputResults[0]);
+        if (this.handleInputError) this.handleInputError(inputResults[0], args);
+        else {
+          this.activeResponse.status(400).send({
+            errors: inputResults[0].map((error) => ({
+              input: error.inputName,
+              message: error.message,
+            })),
+          });
+        }
+        return;
       }
+      args.inputs = inputResults[1];
 
       await this.run(args);
     } catch (error) {

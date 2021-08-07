@@ -21,12 +21,18 @@ export default class MeepRoute extends Route {
           },
         ],
       },
+      handleInputError: (errors, args) => {
+        console.error(errors);
+        args.response.send(errors);
+      },
     });
   }
 
   async run(args: IRouteArgs) {
     const { request, response } = args;
-    console.log(request.headers);
+    const { meep1, meep2 } = args.inputs;
+    console.log(meep1, meep2);
+
     return response.send('Meep!');
   }
 }
