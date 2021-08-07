@@ -7,7 +7,6 @@ import {
   Response,
   Request,
   NextFunction,
-  Router,
 } from 'express';
 import {
   isArrayOfType,

@@ -1,5 +1,3 @@
-import { Route } from './Route';
-
 export type ITagOptions = [string, ((...args: any[]) => void)[]?];
 
 export default class RouteTag {
