@@ -46,8 +46,8 @@ routes/chocola.js
 import { Route } from 'express-chocola';
 
 export default class Default extends Route {
-  constructor(registry) {
-    super(registry, {
+  constructor() {
+    super({
       name: 'default',
       method: 'get',
       path: '',

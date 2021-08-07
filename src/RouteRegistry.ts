@@ -46,13 +46,13 @@ export default class RouteRegistry {
     console.log(`✔️ ${route?.method} => ${route?.name} ${route.path}`);
   }
 
-  private registerRoutes(routes: any[]) {
+  public registerRoutes(routes: any[]) {
     if (!Array.isArray(routes)) throw new TypeError('Routes must be an Array type');
     // TODO: Range of priority via tags
     const lastPriority: Route[] = [];
     routes.forEach((_route) => {
       // TODO: Validate attempting Route
-      const route = new _route(this) as Route;
+      const route = (_route instanceof Route) ? _route : new _route() as Route;
       //
       if (route?.priority === IRouteOrderPosition.LAST) lastPriority.push(route);
       else this.registerRoute(route);
@@ -138,7 +138,7 @@ export default class RouteRegistry {
   private organizeRoute(route: Route) {
     // Add Route
     if (this.routes.has(route.name)) {
-      console.log(`📒 {Skipping over} Attempting to register Route with duplicate name: ${route.name}\nWith paths:\n\t${route.subPath}\n\t${this.routes.get(route.name)?.path}`);
+      console.log(`📒 {Overwritting} Attempting to register Route with duplicate name: ${route.name}\nWith paths:\n\t${route.subPath}\n\t${this.routes.get(route.name)?.path}`);
     }
     this.routes.set(route.name, route);
 
