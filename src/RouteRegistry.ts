@@ -52,7 +52,7 @@ export default class RouteRegistry {
     const lastPriority: Route[] = [];
     routes.forEach((_route) => {
       // TODO: Validate attempting Route
-      const route = new _route(this) as Route;
+      const route = new _route() as Route;
       //
       if (route?.priority === IRouteOrderPosition.LAST) lastPriority.push(route);
       else this.registerRoute(route);

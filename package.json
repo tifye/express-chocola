@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest --watchAll --verbose",
+    "test": "jest tests/ --watchAll --verbose",
     "dev": "nodemon -L --config nodemon.json",
     "build": "tsc"
   },

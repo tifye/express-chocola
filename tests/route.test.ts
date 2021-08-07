@@ -3,7 +3,7 @@ import RouteRegistry from '../src/RouteRegistry';
 
 class TestRoute extends Route {
   constructor(registry: RouteRegistry) {
-    super(registry, {
+    super({
       name: 'meep',
       method: RouteMethod.POST,
       path: '/test',

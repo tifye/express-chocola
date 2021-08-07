@@ -99,7 +99,7 @@ export abstract class Route {
   public inputs: IRouteInput[];
   private handleInputError?(errors: InputError[], args: IRouteArgs): void;
 
-  constructor(private readonly registry: RouteRegistry, info: IRouteInfo) {
+  constructor(info: IRouteInfo) {
     this.name = info.name;
     this.group = info.group;
     this.tags = info.tags;
@@ -143,11 +143,6 @@ export abstract class Route {
   protected respond(status: number, object: any, end: boolean = true) {
     this.activeResponse?.status(status).json(object);
     if (end) this.activeResponse?.end();
-  }
-
-  public reload() {
-    // TODO: delete require cache of this command
-    this.registry.reregisterRoute(this, this);
   }
 
   get path() {
