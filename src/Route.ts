@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 /* eslint-disable no-empty-function */
 /* eslint-disable no-useless-constructor */
 /* eslint-disable no-shadow */
@@ -7,6 +8,13 @@ import {
   NextFunction,
   Router,
 } from 'express';
+import {
+  isArrayOfType,
+  isBoolean,
+  isNumber,
+  isObject,
+  unifyRouteInputDefinition,
+} from './helperFunctions';
 import RouteRegistry from './RouteRegistry';
 
 export enum IRouteOrderPosition {
@@ -25,16 +33,40 @@ export enum RouteMethod {
   TRACE = 'trace'
 }
 
+// Route inputs
+export type TRouteInput = [string, 'object' | 'string' | 'number' | 'boolean', boolean?];
+export interface IRouteInput {
+  name: string;
+  type: 'object' | 'string' | 'number' | 'boolean' | 'array';
+  arrayType?: 'object' | 'string' | 'number';
+  required?: boolean;
+  allowNull?: boolean;
+  inputLocation?: string;
+}
+export type RouteInput = TRouteInput | IRouteInput;
+
+export interface InputError {
+  inputName: string;
+  message: string;
+}
+
+export interface IRouteInputs {
+  query?: RouteInput[];
+  body?: RouteInput[];
+  params?: RouteInput[];
+}
+
 export interface IRouteInfo {
-  name: string,
-  group?: string,
-  tags?: string[],
-  description?: string,
+  name: string;
+  group?: string;
+  tags?: string[];
+  description?: string;
   method: string;
   path: string | RouteMethod;
   middleware?: ((...args: any[]) => void)[];
   priority?: IRouteOrderPosition;
   requreAuth?: boolean;
+  inputs?: IRouteInputs;
 }
 
 export interface IRouteArgs {
@@ -62,6 +94,7 @@ export abstract class Route {
   public subPath: string | RouteMethod;
   public middleware?: ((...args: any[]) => void)[];
   public priority?: IRouteOrderPosition;
+  public inputs: IRouteInput[];
 
   constructor(private readonly registry: RouteRegistry, info: IRouteInfo) {
     this.name = info.name;
@@ -72,11 +105,18 @@ export abstract class Route {
     this.subPath = info.path;
     this.middleware = info.middleware;
     this.priority = info.priority;
+    //
+    this.inputs = unifyRouteInputDefinition(info.inputs);
   }
 
   public async wrappedRun(args: IRouteArgs) {
     try {
       this.activeResponse = args.response;
+      const inputResults = this.validateRequestInputs(args.request);
+      if (inputResults[0].length > 0) {
+        console.error(inputResults[0]);
+      }
+
       await this.run(args);
     } catch (error) {
       console.error(this, error);
@@ -98,6 +138,70 @@ export abstract class Route {
     const group = (this.group === undefined) ? '' : `/${this.group}`;
     const path = (this.subPath[0] === '/') ? this.subPath.substr(1) : this.subPath;
     return `${group}/${path}`;
+  }
+
+  public validateRequestInputs(request: Request | any): [InputError[], any] {
+    if (this.inputs === undefined) return [[], null];
+    const inputs: any = {};
+    const errors: InputError[] = [];
+
+    this.inputs.forEach((routeInput) => {
+      let input = (request as any)[routeInput.inputLocation!][routeInput.name];
+      if (routeInput.allowNull && input === null) {
+        inputs[routeInput.name] = null;
+        return;
+      }
+
+      if (!routeInput.required && input === undefined) return;
+
+      let wasError = false;
+
+      switch (routeInput.type) {
+        case 'string':
+          input = String(input);
+          break;
+        case 'number': {
+          const result = isNumber(input);
+          if (!result[0]) wasError = true;
+          else input = result[1];
+          break;
+        }
+        case 'boolean': {
+          const result = isBoolean(input);
+          if (!result[0]) wasError = true;
+          else input = result[1];
+          break;
+        }
+        case 'object': {
+          const result = isObject(input);
+          if (!result[0]) wasError = true;
+          else input = result[1];
+          break;
+        }
+        case 'array': {
+          if (routeInput.arrayType === undefined) {
+            throw new Error(`❗ Trying to validate RouteInput: ${routeInput.name} of type array but no element type was provided`);
+          }
+          const result = isArrayOfType(input, routeInput.arrayType);
+          if (!result[0]) wasError = true;
+          else input = result[1];
+          break;
+        }
+        default:
+          break;
+      }
+
+      if (wasError) {
+        errors.push({
+          inputName: routeInput.name,
+          message: `RouteInput: ${routeInput.name} in route ${routeInput.inputLocation} is either missing or of invalid type`,
+        });
+        return;
+      }
+      inputs[routeInput.name] = input;
+    });
+
+    return [errors, inputs];
   }
 
   abstract run(args: IRouteArgs): Promise<Response | void>;

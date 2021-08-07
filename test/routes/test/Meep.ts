@@ -9,6 +9,18 @@ export default class MeepRoute extends Route {
       method: RouteMethod.GET,
       path: 'meep',
       tags: ['meep'],
+      inputs: {
+        query: [
+          ['meep1', 'number'],
+          {
+            name: 'meep2',
+            type: 'array',
+            arrayType: 'number',
+            required: true,
+            allowNull: true,
+          },
+        ],
+      },
     });
   }
 

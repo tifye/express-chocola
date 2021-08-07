@@ -22,13 +22,11 @@ const registry = new RouteRegistry()
     ['mino', [minoGroupMiddleware]],
     ['meep', [someMiddleware]],
   ])
-  .registerDefaultGroup([defaultGroupMiddleware])
+  .registerDefaultGroup()
   .registerRoutesIn({
     filter: /^([^.].*)\.(js|ts)$/,
     dirname: path.join(__dirname, 'routes'),
-  })
-  .registerMiddlewareOnTag('mino', afterRouteTagMiddleware);
-
+  });
 const app = express();
 
 app.use(registry.router);
