@@ -2,7 +2,7 @@
   "name": "express-chocola",
   "version": "1.0.0",
   "description": "Small express framework around routers specfically",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "jest --watchAll --verbose",
     "dev": "nodemon -L --config nodemon.json"
