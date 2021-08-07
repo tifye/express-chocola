@@ -76,4 +76,10 @@ describe('Route class', () => {
     expect(result[0].length).toBe(3);
     expect(result[0][0]?.inputName).toEqual('bodyNumArray');
   });
+
+  it('Should be able to register an array of already instantiated Routes', () => {
+    const routes = [route];
+    registry.registerRoutes(routes);
+    expect(registry.routes.has(route.name)).toBe(true);
+  });
 });
