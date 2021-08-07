@@ -1,6 +1,7 @@
 env:
   browser: true
   es2021: true
+  jest: true
 extends:
   - airbnb-base
 parser: '@typescript-eslint/parser'
@@ -21,4 +22,5 @@ rules: {
   no-unused-vars: 'off',
   import/prefer-default-export: 'warn',
   lines-between-class-members: 'off',
+  max-len: [2, 200]
 }
