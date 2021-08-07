@@ -29,6 +29,7 @@ const registry = new RouteRegistry()
   });
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(registry.router);
 
 app.listen(10000);

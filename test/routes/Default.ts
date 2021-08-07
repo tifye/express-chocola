@@ -11,8 +11,7 @@ export default class Default extends Route {
   }
 
   async run(args: IRouteArgs) {
-    const { request, response } = args;
-    console.log('default run', request.headers);
-    return response.send('Default!');
+    const { response } = args;
+    return response.sendFile('D:\\Projects\\express-chocola\\test\\public\\blank.html');
   }
 }
