@@ -15,7 +15,7 @@ A small framework around express Routers providing an alternate way of defining 
 
 ## Installing
 ```bash
-N/A
+$ npm install express-chocola
 ```
 
 ## Quick Start
