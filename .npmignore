@@ -1,0 +1,15 @@
+# Ignore all configs
+# package.json is protected against being ignored
+*.json
+
+# Only dist/src
+src/
+tests/
+dist/test/
+
+.gitignore
+.eslintrc.yml
+*.config.{js,ts}
+
+# This is only for local manual testing
+index.ts
