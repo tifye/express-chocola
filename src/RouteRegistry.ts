@@ -15,6 +15,7 @@ export interface IRegisterRoutesInOptions {
   filter: RegExp | string;
   dirname?: string;
   recursive?: boolean;
+  excludeDirs?: RegExp | string;
 }
 
 export default class RouteRegistry {
