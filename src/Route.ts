@@ -86,6 +86,10 @@ export abstract class Route {
    * If no Group is specificed and the user has registered the default Group then the Route will be part of the default Group.
    *
    */
+
+  /**
+   * @deprecated
+   */
   private activeResponse: Response | undefined | null;
 
   public name: string;
@@ -140,9 +144,17 @@ export abstract class Route {
     }
   }
 
+  /**
+   * @deprecated since 1.2
+   */
   protected respond(status: number, object: any, end: boolean = true) {
     this.activeResponse?.status(status).json(object);
     if (end) this.activeResponse?.end();
+  }
+
+  protected respondTo(response: Response, status: number, object: any, end: boolean = true) {
+    response.status(status).json(object);
+    if (end) response.end();
   }
 
   get path() {
