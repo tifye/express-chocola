@@ -47,7 +47,7 @@ describe('Route class', () => {
   it('Should validate inputs with no error and pass through correct types', () => {
     const result = route.validateRequestInputs({
       query: {
-        queryString: 'queryString',
+        queryString: 'undefined',
       },
       body: {
         bodyNumArray: [1, 2, 3, 4, '5'],
