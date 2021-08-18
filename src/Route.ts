@@ -178,40 +178,42 @@ export abstract class Route {
       if (!routeInput.required && input === undefined) return;
 
       let wasError = false;
-
-      switch (routeInput.type) {
-        case 'string':
-          input = String(input);
-          break;
-        case 'number': {
-          const result = isNumber(input);
-          if (!result[0]) wasError = true;
-          else input = result[1];
-          break;
-        }
-        case 'boolean': {
-          const result = isBoolean(input);
-          if (!result[0]) wasError = true;
-          else input = result[1];
-          break;
-        }
-        case 'object': {
-          const result = isObject(input);
-          if (!result[0]) wasError = true;
-          else input = result[1];
-          break;
-        }
-        case 'array': {
-          if (routeInput.arrayType === undefined) {
-            throw new Error(`❗ Trying to validate RouteInput: ${routeInput.name} of type array but no element type was provided`);
+      if (routeInput.required && input === undefined) wasError = true;
+      else {
+        switch (routeInput.type) {
+          case 'string':
+            input = String(input);
+            break;
+          case 'number': {
+            const result = isNumber(input);
+            if (!result[0]) wasError = true;
+            else input = result[1];
+            break;
           }
-          const result = isArrayOfType(input, routeInput.arrayType);
-          if (!result[0]) wasError = true;
-          else input = result[1];
-          break;
+          case 'boolean': {
+            const result = isBoolean(input);
+            if (!result[0]) wasError = true;
+            else input = result[1];
+            break;
+          }
+          case 'object': {
+            const result = isObject(input);
+            if (!result[0]) wasError = true;
+            else input = result[1];
+            break;
+          }
+          case 'array': {
+            if (routeInput.arrayType === undefined) {
+              throw new Error(`❗ Trying to validate RouteInput: ${routeInput.name} of type array but no element type was provided`);
+            }
+            const result = isArrayOfType(input, routeInput.arrayType);
+            if (!result[0]) wasError = true;
+            else input = result[1];
+            break;
+          }
+          default:
+            break;
         }
-        default:
-          break;
       }
 
       if (wasError) {
